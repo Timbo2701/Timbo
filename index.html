@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Token Platform</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; margin: 0; padding: 0; height: 100vh; }
+        nav { display: flex; justify-content: space-between; align-items: center; background-color: rgba(0,0,0,0.5); padding: 1rem 2rem; }
+        nav ul { list-style: none; display: flex; gap: 20px; }
+        nav ul li { cursor: pointer; transition: color 0.3s; }
+        nav ul li:hover { color: #ff4757; }
+        .profile { display: flex; align-items: center; gap: 10px; }
+        .profile img { width: 40px; height: 40px; border-radius: 50%; }
+        .container { padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+        .tokens-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-top: 2rem; }
+        .token-card { background-color: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; cursor: pointer; transition: transform 0.2s; }
+        .token-card:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li onclick="window.location.href='index.html'">Home</li>
+            <li onclick="window.location.href='create.html'">Token erstellen</li>
+            <li onclick="window.location.href='ranking.html'">Ranking</li>
+        </ul>
+        <div class="profile" id="userProfile"></div>
+    </nav>
+    <div class="container">
+        <h1>Willkommen beim Meme Token Creator!</h1>
+        <p>Entdecke die neuesten Meme-Tokens oder erstelle deinen eigenen!</p>
+        <div class="tokens-grid" id="tokensGrid"></div>
+    </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAccount = localStorage.getItem('walletAccount');
+            const savedImage = localStorage.getItem('profileImage');
+            if (savedAccount) {
+                const shortened = `${savedAccount.substring(0, 4)}...${savedAccount.substring(savedAccount.length - 4)}`;
+                document.getElementById('userProfile').innerHTML = `<img src="./images/${savedImage}" alt="Profilbild"><span>${shortened}</span>`;
+            }
+
+            const tokens = JSON.parse(localStorage.getItem('tokens')) || [];
+            const grid = document.getElementById('tokensGrid');
+            grid.innerHTML = '';
+
+            if (tokens.length === 0) {
+                grid.innerHTML = '<p>Keine Tokens verfügbar. Erstelle deinen ersten Token!</p>';
+            } else {
+                tokens.slice(-20).reverse().forEach(token => {
+                    const card = document.createElement('div');
+                    card.classList.add('token-card');
+                    card.innerHTML = `
+                        <img src="${token.image}" alt="${token.name}" style="width:100%;border-radius:10px;">
+                        <h3>${token.name}</h3>
+                        <p>${token.symbol}</p>
+                        <p>${token.tag}</p>`;
+                    card.addEventListener('click', () => { alert(`Token: ${token.name}`); });
+                    grid.appendChild(card);
+                });
+            }
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+            const tokens = JSON.parse(localStorage.getItem('tokens')) || [];
+            const grid = document.getElementById('tokensGrid');
+            if (grid) {
+                grid.innerHTML = '';
+                tokens.slice(-20).reverse().forEach(token => {
+                    const card = document.createElement('div');
+                    card.classList.add('token-card');
+                    card.innerHTML = `
+                        <img src="${token.image}" alt="${token.name}" style="width:100%;border-radius:10px;">
+                        <h3>${token.name}</h3>
+                        <p>${token.symbol}</p>
+                        <p>${token.tag}</p>`;
+                    card.addEventListener('click', () => {
+                        window.location.href = `coin.html?name=${encodeURIComponent(token.name)}&symbol=${encodeURIComponent(token.symbol)}`;
+                    });
+                    grid.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

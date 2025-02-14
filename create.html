@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token erstellen</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; margin: 0; padding: 0; height: 100vh; }
+        nav { display: flex; justify-content: space-between; align-items: center; background-color: rgba(0,0,0,0.5); padding: 1rem 2rem; }
+        nav ul { list-style: none; display: flex; gap: 20px; }
+        nav ul li { cursor: pointer; transition: color 0.3s; }
+        nav ul li:hover { color: #ff4757; }
+        .profile { position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .profile img { width: 40px; height: 40px; border-radius: 50%; }
+        .profile .dropdown { display: none; position: absolute; top: 60px; right: 0; background: rgba(0,0,0,0.8); border-radius: 8px; padding: 10px; }
+        .profile:hover .dropdown { display: block; }
+        .dropdown li { list-style: none; margin: 10px 0; cursor: pointer; transition: color 0.3s; }
+        .dropdown li:hover { color: #ff4757; }
+        .container { padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+        .form-container { background-color: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; width: 600px; }
+        input, textarea, button { width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: none; border-radius: 8px; }
+        .upload-box { border: 2px dashed rgba(255,255,255,0.5); padding: 1rem; text-align: center; cursor: pointer; margin-bottom: 1rem; }
+        .preview-img { max-width: 100%; margin-top: 1rem; border-radius: 10px; }
+        .tags { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1rem; }
+        .tag { padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; cursor: pointer; transition: transform 0.2s, background-color 0.3s; }
+        .tag:hover { transform: scale(1.05); background-color: #22c55e; color: white; }
+        .tag.selected { background-color: #22c55e; color: white; }
+        .btn { background-color: #22c55e; color: white; padding: 1rem; margin-top: 1rem; cursor: pointer; border-radius: 8px; transition: transform 0.2s; }
+        .btn:hover { transform: scale(1.05); }
+        .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .popup { background: white; color: black; padding: 2rem; border-radius: 15px; text-align: center; animation: fadeIn 0.5s ease; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .checkmark { color: #22c55e; font-size: 40px; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .popup button { padding: 0.8rem 1.5rem; margin: 1rem; cursor: pointer; border-radius: 8px; border: none; background-color: #3498db; color: white; transition: transform 0.2s; display: inline-block; }
+        .popup button:hover { transform: scale(1.05); background-color: #2980b9; }
+        .popup .button-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .dots {
+    display: inline-block;
+    font-size: 24px;
+}
+
+.dots span {
+    opacity: 0;
+    animation: blink 1.5s infinite;
+}
+
+.dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.dots span:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.dots span:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li onclick="window.location.href='index.html'">Home</li>
+            <li onclick="window.location.href='create.html'">Token erstellen</li>
+            <li onclick="window.location.href='ranking.html'">Ranking</li>
+        </ul>
+        <div class="profile" id="userProfile"></div>
+    </nav>
+    <div class="container">
+        <h2>Erstelle dein Meme Token</h2>
+        <div class="form-container">
+            <div class="upload-box" id="uploadBox">
+                <p>Wähle ein Cover-Bild</p>
+                <input type="file" id="uploadInput" accept="image/*" hidden>
+                <img id="preview" class="preview-img" src="" alt="Bildvorschau" style="display:none;">
+            </div>
+            <input type="text" id="tokenName" placeholder="Token Name" required>
+            <input type="text" id="tokenSymbol" placeholder="Ticker Symbol" required>
+            <textarea id="description" placeholder="Beschreibe deinen Token" required></textarea>
+            <input type="url" id="website" placeholder="Website (optional)">
+            <input type="url" id="twitter" placeholder="Twitter (optional)">
+            <input type="url" id="telegram" placeholder="Telegram (optional)">
+            <div class="tags" id="tagsContainer">
+                <div class="tag">Meme</div><div class="tag">AI</div><div class="tag">DeFi</div><div class="tag">Games</div><div class="tag">Infra</div><div class="tag">De-Sci</div><div class="tag">Social</div><div class="tag">Depin</div><div class="tag">Charity</div><div class="tag">Others</div>
+            </div>
+            <button class="btn" id="createTokenBtn">Token erstellen</button>
+        </div>
+    </div>
+    <!-- Popup für Token-Erstellung -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupContent">
+            <p id="popupContent">Erstelle Token<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+            <div class="loader"></div>
+        </div>
+    </div>
+    <!-- Popup für Abmeldung -->
+    <div class="popup-overlay" id="logoutPopupOverlay">
+        <div class="popup" id="logoutPopupContent">
+            <p id="logoutMessage">Melde ab<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+            <div class="loader" id="logoutLoader"></div>
+            <div class="checkmark" id="logoutCheckmark" style="display: none;">✔</div>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAccount = localStorage.getItem('walletAccount');
+            let savedImage = localStorage.getItem('profileImage');
+
+            if (!savedImage) {
+                const images = [
+                    './Images/img1.png',
+                    './Images/img2.png',
+                    './Images/img3.png',
+                    './Images/img4.png',
+                    './Images/img5.png'
+                ];
+                savedImage = images[Math.floor(Math.random() * images.length)];
+                localStorage.setItem('profileImage', savedImage);
+            }
+
+            const userProfile = document.getElementById('userProfile');
+
+            if (savedAccount) {
+                const shortened = `${savedAccount.substring(0, 4)}...${savedAccount.substring(savedAccount.length - 4)}`;
+                userProfile.innerHTML = `
+                    <img src="${savedImage}" alt="Profilbild">
+                    <span>${shortened}</span>
+                    <span id="dropdownArrow">▼</span>
+                    <ul class="dropdown" id="dropdownMenu" style="display: none;">
+                        <li onclick="window.location.href='profile.html'">Mein Profil</li>
+                        <li onclick="logout()">Abmelden</li>
+                    </ul>`;
+                setupDropdown();
+            } else {
+                userProfile.innerHTML = '<button class="btn" id="connectWalletBtn">Mit Wallet verbinden</button>';
+                document.getElementById('connectWalletBtn').addEventListener('click', async () => {
+                    if (window.ethereum) {
+                        try {
+                            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                            const account = accounts[0];
+                            localStorage.setItem('walletAccount', account);
+                            localStorage.setItem('profileImage', savedImage);
+                            window.location.reload();
+                        } catch (error) {
+                            alert('Fehler bei der Wallet-Verbindung');
+                        }
+                    } else {
+                        alert('MetaMask nicht installiert');
+                    }
+                });
+            }
+        });
+
+        function setupDropdown() {
+            const arrow = document.getElementById('dropdownArrow');
+            const menu = document.getElementById('dropdownMenu');
+            arrow.addEventListener('click', () => {
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                arrow.textContent = menu.style.display === 'block' ? '▲' : '▼';
+            });
+        }
+
+        function logout() {
+            const logoutPopupOverlay = document.getElementById('logoutPopupOverlay');
+            const logoutLoader = document.getElementById('logoutLoader');
+            const logoutCheckmark = document.getElementById('logoutCheckmark');
+            const logoutMessage = document.getElementById('logoutMessage');
+
+            // Popup anzeigen
+            logoutPopupOverlay.style.display = 'flex';
+
+            // Ladeanimation für 5 Sekunden
+            setTimeout(() => {
+                logoutLoader.style.display = 'none';
+                logoutCheckmark.style.display = 'block';
+                logoutMessage.textContent = 'Erfolgreich abgemeldet';
+
+                // Nach 2 Sekunden Popup ausblenden und abmelden
+                setTimeout(() => {
+                    logoutPopupOverlay.style.display = 'none';
+                    localStorage.removeItem('walletAccount');
+                    localStorage.removeItem('profileImage');
+                    window.location.reload(); // Seite neu laden, um den Abmeldezustand anzuzeigen
+                }, 2000);
+            }, 5000);
+        }
+
+        // Bild-Upload
+        document.getElementById('uploadBox').addEventListener('click', () => {
+            document.getElementById('uploadInput').click();
+        });
+
+        document.getElementById('uploadInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('preview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Tag-Auswahl
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+                tag.classList.add('selected');
+            });
+        });
+
+        // Token-Erstellung mit Speicherung und Weiterleitung
+        document.getElementById('createTokenBtn').addEventListener('click', () => {
+            const name = document.getElementById('tokenName').value.trim();
+            const symbol = document.getElementById('tokenSymbol').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const image = document.getElementById('preview').src;
+            const tag = document.querySelector('.tag.selected');
+
+            if (!name || !symbol || !description || !image || !tag) {
+                alert('Bitte fülle alle erforderlichen Felder aus und wähle ein Bild und einen Tag.');
+                return;
+            }
+
+            document.getElementById('popupOverlay').style.display = 'flex';
+
+            setTimeout(() => {
+                document.getElementById('popupContent').innerHTML = `
+                    <h2>Token erfolgreich erstellt!</h2>
+                    <div class="button-container">
+                        <button onclick="window.location.href='index.html'">Zurück zum Hauptmenü</button>
+                        <button onclick="window.location.href='coin.html?name=${encodeURIComponent(name)}&symbol=${encodeURIComponent(symbol)}'">Zu deinem Coin</button>
+                    </div>`;
+
+                const coins = JSON.parse(localStorage.getItem('tokens')) || [];
+                const newCoin = { name, symbol, description, image, tag: tag.textContent };
+                coins.push(newCoin);
+                localStorage.setItem('tokens', JSON.stringify(coins));
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
